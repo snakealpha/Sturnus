@@ -35,9 +35,13 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="Context.cs" />
     <Compile Include="Expression.cs" />
-    <Compile Include="Operator\Operator.cs" />
+    <Compile Include="OperatorContext.cs" />
+    <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Operators\Operator.cs" />
+    <Compile Include="Sturnus.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

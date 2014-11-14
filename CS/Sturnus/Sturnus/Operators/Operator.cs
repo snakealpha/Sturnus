@@ -18,10 +18,6 @@ namespace Elecelf.Sturnus.Operators
     /// <typeparam name="T">The type of the delegate will be called.</typeparam>
     public abstract class Operator
     {
-        public delegate double OperatorAlgorithm(double leftOperand, double rightOperand);
-
-        public OperatorAlgorithm Algorithm;
-
         public virtual string OperatorLiteral
         {
             get;
@@ -46,5 +42,7 @@ namespace Elecelf.Sturnus.Operators
                 return EscalateTime * 100 + Priority;
             }
         }
+
+        public virtual double Execute(double leftOperand, double rightOperand);
     }
 }

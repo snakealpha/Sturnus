@@ -27,6 +27,13 @@ namespace Elecelf.Sturnus
         {
             throw new NotImplementedException("The base class of Expression should not be used.");
         }
+
+        public virtual bool Calculated
+        {
+            get;
+        }
+
+        public virtual void Reset();
     }
 
     public class ConstantExpression : Expression
@@ -53,10 +60,29 @@ namespace Elecelf.Sturnus
         {
             return value;
         }
+
+        public override bool Calculated
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public override void Reset() { }
     }
 
     public class VaribleExpression : Expression
     {
+        private bool calculated = false;
+        public bool Calculated
+        {
+            get
+            {
+                return calculated;
+            }
+        }
+
         private string literal;
         public string Literal
         {
@@ -81,6 +107,7 @@ namespace Elecelf.Sturnus
             set
             {
                 this.value = value;
+                calculated = true;
             }
         }
 
@@ -91,6 +118,11 @@ namespace Elecelf.Sturnus
 
             return value;
         }
+
+        public override void Reset()
+        {
+            calculated = false;
+        }
     }
 
     public class FormulaExpression : Expression
@@ -100,6 +132,8 @@ namespace Elecelf.Sturnus
         {
             // TODO Parse a expression.
         }
+
+        private bool calculated = false;
 
         public Operator ExpressionOperator;
 
@@ -122,10 +156,28 @@ namespace Elecelf.Sturnus
         public override double Calculate(Context context)
         {
             value = ExpressionOperator.Type == OperatorType.UniaryOperator ?
-                    ExpressionOperator.Algorithm(0, RightOperand.Calculate(context)) :
-                    ExpressionOperator.Algorithm(LeftOperand.Calculate(context), RightOperand.Calculate(context));
+                    ExpressionOperator.Execute(0, RightOperand.Calculate(context)) :
+                    ExpressionOperator.Execute(LeftOperand.Calculate(context), RightOperand.Calculate(context));
 
             return value;
+        }
+
+        public override bool Calculated
+        {
+            get
+            {
+                return calculated;
+            }
+        }
+
+        public override void Reset()
+        {
+            if (LeftOperand != null)
+                LeftOperand.Reset();
+            if (RightOperand != null)
+                RightOperand.Reset();
+
+            calculated = false;
         }
     }
 }
