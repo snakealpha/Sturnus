@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
+using Elecelf.Sturnus.Operators;
+
 namespace Elecelf.Sturnus
 {
     /// <summary>
@@ -23,6 +25,24 @@ namespace Elecelf.Sturnus
 
         public const string escalateUpgradation = "(";
         public const string escalateDowngradation = ")";
+
+        public const OperatorContext DefaultOperatorContext = new OperatorContext()
+            {
+                BinaryOperatorTypes = new List<Type>()
+                    {
+                        typeof(AddOperator),
+                        typeof(MinusOperator),
+                        typeof(MultiplyOperator),
+                        typeof(DivideOperator),
+                        typeof(ModOperator),
+                        typeof(PowerOperator)
+                    },
+                UniaryOperatorTypes = new List<Type>() 
+                    {
+                        typeof(NegativeOperator),
+                        typeof(AbsoluteOperator)
+                    }
+            };
 
         /// <summary>
         /// Parse a string into a expression tree.
@@ -46,10 +66,12 @@ namespace Elecelf.Sturnus
                 expressionChars.AddLast(sign);
             }
 
+            OperatorContext opContext = context == null ? DefaultOperatorContext : context;
+
             throw new NotImplementedException();
         }
 
-        private static Expression parseConstant(LinkedList<char> signs)
+        public static Expression parseConstant(LinkedList<char> signs)
         {
             bool dotAppeared = false;
             char peekChar;
@@ -83,7 +105,7 @@ namespace Elecelf.Sturnus
             return constant;
         }
 
-        private static Expression parseVarible(LinkedList<char> signs)
+        public static Expression parseVarible(LinkedList<char> signs)
         {
             char peekChar = signs.First.Value;
             StringBuilder varRawStr = new StringBuilder();
@@ -104,7 +126,7 @@ namespace Elecelf.Sturnus
             return varible;
         }
 
-        private static Expression parseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
+        public static Expression parseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
         {
             Operators.Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.UniaryOperators.Keys;
@@ -129,7 +151,7 @@ namespace Elecelf.Sturnus
                 else
                 {
                     if (context.UniaryOperators.ContainsKey(currentStr))
-                        lastOperator = context.UniaryOperators[currentStr];
+                        lastOperator = Activator.CreateInstance(context.UniaryOperators[currentStr]) as Operators.Operator;
 
                     signs.RemoveFirst();
                 }
@@ -145,7 +167,7 @@ namespace Elecelf.Sturnus
                 return null;
         }
 
-        private static Expression parseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
+        public static Expression parseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
         {
             Operators.Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.BinaryOperators.Keys;
@@ -170,7 +192,7 @@ namespace Elecelf.Sturnus
                 else
                 {
                     if (context.BinaryOperators.ContainsKey(currentStr))
-                        lastOperator = context.BinaryOperators[currentStr];
+                        lastOperator = Activator.CreateInstance(context.BinaryOperators[currentStr]) as Operators.Operator;
 
                     signs.RemoveFirst();
                 }
