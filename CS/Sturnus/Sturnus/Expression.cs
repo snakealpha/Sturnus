@@ -130,7 +130,7 @@ namespace Elecelf.Sturnus
         public FormulaExpression(string literal)
             : base(literal)
         {
-            // TODO Parse a expression.
+            
         }
 
         private bool calculated = false;

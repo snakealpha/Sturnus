@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace Elecelf.Sturnus
 {
@@ -17,6 +18,8 @@ namespace Elecelf.Sturnus
                                             "0123456789" +
                                             "abcdefghijklmnopqrstuvwxyz" +
                                             "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        public const string NumberChars = "0123456789";
 
         public const string escalateUpgradation = "(";
         public const string escalateDowngradation = ")";
@@ -48,23 +51,139 @@ namespace Elecelf.Sturnus
 
         private static Expression parseConstant(LinkedList<char> signs)
         {
-            throw new NotImplementedException();
+            bool dotAppeared = false;
+            char peekChar;
+            StringBuilder numRawStr = new StringBuilder();
+
+            while (true)
+            {
+                peekChar = signs.First.Value;
+
+                if (NumberChars.IndexOf(peekChar) != -1)
+                {
+                    numRawStr.Append(peekChar);
+                    signs.RemoveFirst();
+                }
+                else if (!dotAppeared && peekChar == '.')
+                {
+                    dotAppeared = true;
+                    numRawStr.Append(peekChar);
+                    signs.RemoveFirst();
+                    peekChar = signs.First.Value;
+                    if (NumberChars.IndexOf(peekChar) == -1)
+                        throw new FormatException("Cannot parse a Number.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            ConstantExpression constant = new ConstantExpression(numRawStr.ToString());
+            return constant;
         }
 
         private static Expression parseVarible(LinkedList<char> signs)
         {
-            throw new NotImplementedException();
+            char peekChar = signs.First.Value;
+            StringBuilder varRawStr = new StringBuilder();
+
+            while(true)
+            {
+                signs.RemoveFirst();
+                if (peekChar == '{')
+                    continue;
+                else if (peekChar == '}')
+                    break;
+
+                varRawStr.Append(peekChar);
+                peekChar = signs.First.Value;
+            }
+
+            VaribleExpression varible = new VaribleExpression(varRawStr.ToString());
+            return varible;
         }
 
         private static Expression parseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
         {
-            throw new NotImplementedException();
+            Operators.Operator lastOperator = null;
+            IEnumerable<string> operatorNames = context.UniaryOperators.Keys;
+            StringBuilder operatorRawStr = new StringBuilder();
+
+            do
+            {
+                operatorRawStr.Append(signs.First.Value);
+                string currentStr = operatorRawStr.ToString();
+
+                var lastMatches =
+                    (
+                    from name in operatorNames
+                    where name.StartsWith(currentStr)
+                    select name
+                    ).ToArray();
+
+                if(lastMatches.Length == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    if (context.UniaryOperators.ContainsKey(currentStr))
+                        lastOperator = context.UniaryOperators[currentStr];
+
+                    signs.RemoveFirst();
+                }
+            }
+            while (true);
+
+            if (lastOperator != null)
+                return new FormulaExpression(null)
+                {
+                    ExpressionOperator = lastOperator
+                };
+            else
+                return null;
         }
 
         private static Expression parseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
         {
-            throw new NotImplementedException();
-        }
+            Operators.Operator lastOperator = null;
+            IEnumerable<string> operatorNames = context.BinaryOperators.Keys;
+            StringBuilder operatorRawStr = new StringBuilder();
 
+            do
+            {
+                operatorRawStr.Append(signs.First.Value);
+                string currentStr = operatorRawStr.ToString();
+
+                var lastMatches =
+                    (
+                    from name in operatorNames
+                    where name.StartsWith(currentStr)
+                    select name
+                    ).ToArray();
+
+                if (lastMatches.Length == 0)
+                {
+                    break;
+                }
+                else
+                {
+                    if (context.BinaryOperators.ContainsKey(currentStr))
+                        lastOperator = context.BinaryOperators[currentStr];
+
+                    signs.RemoveFirst();
+                }
+            }
+            while (true);
+
+            if (lastOperator != null)
+                return new FormulaExpression(null)
+                {
+                    ExpressionOperator = lastOperator
+                };
+            else
+                return null;
+        }
     }
 }
