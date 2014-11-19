@@ -24,27 +24,18 @@ namespace Elecelf.Sturnus
             }
         }
 
-        public List<Type> BinaryOperatorTypes
+        public OperatorContext(List<Type> binaryOperators, List<Type> uniaryOperators)
         {
-            set
+            foreach (var type in binaryOperators)
             {
-                foreach(var type in value)
-                {
-                    Operators.Operator instance = Activator.CreateInstance(type) as Operators.Operator;
-                    BinaryOperators[instance.OperatorLiteral] = type;
-                }
+                Operators.Operator instance = Activator.CreateInstance(type) as Operators.Operator;
+                BinaryOperators[instance.OperatorLiteral] = type;
             }
-        }
 
-        public List<Type> UniaryOperatorTypes
-        {
-            set
+            foreach (var type in uniaryOperators)
             {
-                foreach (var type in value)
-                {
-                    Operators.Operator instance = Activator.CreateInstance(type) as Operators.Operator;
-                    UniaryOperators[instance.OperatorLiteral] = type;
-                }
+                Operators.Operator instance = Activator.CreateInstance(type) as Operators.Operator;
+                UniaryOperators[instance.OperatorLiteral] = type;
             }
         }
     }

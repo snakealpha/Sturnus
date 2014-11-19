@@ -12,6 +12,23 @@ namespace Elecelf.Sturnus
     /// </summary>
     public abstract class Parser
     {
+        [Flags]
+        enum ExpectType
+        {
+            None = 0,
+            LeftBracket = 1,
+            RightBracket = 2,
+            UniaryOperator = 4,
+            BinaryOperator = 8,
+            Operand = 16
+        }
+
+        class WrappedExpression
+        {
+            public Expression Payload;
+            public bool IsCaptured = false;
+        }
+
         public const string VariableFirstChars =    "_" +
                                                     "abcdefghijklmnopqrstuvwxyz" +
                                                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -26,9 +43,8 @@ namespace Elecelf.Sturnus
         public const string escalateUpgradation = "(";
         public const string escalateDowngradation = ")";
 
-        public const OperatorContext DefaultOperatorContext = new OperatorContext()
-            {
-                BinaryOperatorTypes = new List<Type>()
+        public static OperatorContext DefaultOperatorContext = new OperatorContext(
+                    new List<Type>()
                     {
                         typeof(AddOperator),
                         typeof(MinusOperator),
@@ -37,12 +53,12 @@ namespace Elecelf.Sturnus
                         typeof(ModOperator),
                         typeof(PowerOperator)
                     },
-                UniaryOperatorTypes = new List<Type>() 
+
+                    new List<Type>() 
                     {
                         typeof(NegativeOperator),
                         typeof(AbsoluteOperator)
-                    }
-            };
+                    });
 
         /// <summary>
         /// Parse a string into a expression tree.
@@ -50,7 +66,7 @@ namespace Elecelf.Sturnus
         /// <param name="expression">Raw string of the expression tree.</param>
         /// <param name="context"> Context of operators.</param>
         /// <returns></returns>
-        public Expression Parse(string expression, OperatorContext context = null)
+        public static Expression Parse(string expression, OperatorContext context = null)
         {
             // raw expressions that has not been captured by other expressions.
             Queue<Expression> operatandsQueue = new Queue<Expression>();
@@ -68,7 +84,79 @@ namespace Elecelf.Sturnus
 
             OperatorContext opContext = context == null ? DefaultOperatorContext : context;
 
-            throw new NotImplementedException();
+             // Do parse.
+            int bracketDepth = 0;
+            ExpectType expect = ExpectType.LeftBracket | ExpectType.UniaryOperator | ExpectType.Operand;
+            Expression currentExpression;
+            do
+            {
+                if((expect & ExpectType.LeftBracket) != 0)
+                {
+                    if(expressionChars.First.Value == '(')
+                    {
+                        bracketDepth++;
+                        expressionChars.RemoveFirst();
+                        expect = ExpectType.LeftBracket | ExpectType.UniaryOperator | ExpectType.Operand;
+                        continue;
+                    }
+                }
+
+                if((expect & ExpectType.RightBracket) != 0 && bracketDepth > 0)
+                {
+                    if(expressionChars.First.Value == ')')
+                    {
+                        bracketDepth--;
+                        expressionChars.RemoveFirst();
+                        expect = ExpectType.RightBracket | ExpectType.BinaryOperator;
+                        continue;
+                    }
+                }
+
+                if((expect & ExpectType.UniaryOperator) != 0)
+                {
+                    currentExpression = parseUniaryOperator(expressionChars, bracketDepth, opContext);
+                    if(currentExpression != null)
+                    {
+                        expect = ExpectType.UniaryOperator | ExpectType.LeftBracket | ExpectType.Operand;
+                        subexpressionQueue.Enqueue(currentExpression);
+                        continue;
+                    }
+                }
+
+                if((expect & ExpectType.BinaryOperator) != 0)
+                {
+                    currentExpression = parseBinaryOperator(expressionChars, bracketDepth, opContext);
+                    if(currentExpression != null)
+                    {
+                        expect = ExpectType.LeftBracket | ExpectType.Operand | ExpectType.UniaryOperator;
+                        subexpressionQueue.Enqueue(currentExpression);
+                        continue;
+                    }
+                }
+
+                if((expect & ExpectType.Operand) != 0)
+                {
+                    currentExpression = parseConstant(expressionChars);
+                    if(currentExpression != null)
+                    {
+                        expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
+                        operatandsQueue.Enqueue(currentExpression);
+                        continue;
+                    }
+
+                    currentExpression = parseVarible(expressionChars);
+                    if(currentExpression != null)
+                    {
+                        expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
+                        operatandsQueue.Enqueue(currentExpression);
+                        continue;
+                    }
+                }
+
+                throw new FormatException("Cannot parse the expression.");
+            } while (expressionChars.Count > 0);
+
+            return Assemble(operatandsQueue, subexpressionQueue);
         }
 
         public static Expression parseConstant(LinkedList<char> signs)
@@ -79,6 +167,9 @@ namespace Elecelf.Sturnus
 
             while (true)
             {
+                if (signs.Count == 0)
+                    break;
+
                 peekChar = signs.First.Value;
 
                 if (NumberChars.IndexOf(peekChar) != -1)
@@ -151,7 +242,10 @@ namespace Elecelf.Sturnus
                 else
                 {
                     if (context.UniaryOperators.ContainsKey(currentStr))
+                    {
                         lastOperator = Activator.CreateInstance(context.UniaryOperators[currentStr]) as Operators.Operator;
+                        lastOperator.EscalateTime = escalateTime;
+                    }
 
                     signs.RemoveFirst();
                 }
@@ -192,7 +286,10 @@ namespace Elecelf.Sturnus
                 else
                 {
                     if (context.BinaryOperators.ContainsKey(currentStr))
+                    {
                         lastOperator = Activator.CreateInstance(context.BinaryOperators[currentStr]) as Operators.Operator;
+                        lastOperator.EscalateTime = escalateTime;
+                    }
 
                     signs.RemoveFirst();
                 }
@@ -206,6 +303,23 @@ namespace Elecelf.Sturnus
                 };
             else
                 return null;
+        }
+
+        public static Expression Assemble(Queue<Expression> operands, Queue<Expression> operators)
+        {
+            Queue<WrappedExpression> rawOperands = new Queue<WrappedExpression>
+                (
+                from operand in operands
+                select new WrappedExpression() { Payload = operand }
+                );
+            Queue<WrappedExpression> wrappedOperators = new Queue<WrappedExpression>
+                (
+                from oper in operators
+                select new WrappedExpression() { Payload = oper }
+                );
+            Queue<WrappedExpression> standbyOperands = new Queue<WrappedExpression>();
+
+            throw new NotImplementedException();
         }
     }
 }

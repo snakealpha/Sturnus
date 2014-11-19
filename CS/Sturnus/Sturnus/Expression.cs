@@ -17,7 +17,7 @@ namespace Elecelf.Sturnus
         }
 
         protected double value;
-        public virtual double Value
+        public abstract double Value
         {
             set;
             get;
@@ -28,12 +28,12 @@ namespace Elecelf.Sturnus
             throw new NotImplementedException("The base class of Expression should not be used.");
         }
 
-        public virtual bool Calculated
+        public abstract bool Calculated
         {
             get;
         }
 
-        public virtual void Reset();
+        public abstract void Reset();
     }
 
     public class ConstantExpression : Expression
@@ -75,7 +75,7 @@ namespace Elecelf.Sturnus
     public class VaribleExpression : Expression
     {
         private bool calculated = false;
-        public bool Calculated
+        public override bool Calculated
         {
             get
             {
