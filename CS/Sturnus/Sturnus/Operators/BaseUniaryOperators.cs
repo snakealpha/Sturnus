@@ -28,6 +28,14 @@ namespace Elecelf.Sturnus.Operators
             }
         }
 
+        public override OperatorAssociativity Associativity
+        {
+            get
+            {
+                return OperatorAssociativity.Right;
+            }
+        }
+
         public override double Execute(double leftOperand, double rightOperand)
         {
             return - rightOperand;
@@ -57,6 +65,14 @@ namespace Elecelf.Sturnus.Operators
             get
             {
                 return 12;
+            }
+        }
+
+        public override OperatorAssociativity Associativity
+        {
+            get
+            {
+                return OperatorAssociativity.Right;
             }
         }
 

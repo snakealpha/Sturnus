@@ -12,6 +12,12 @@ namespace Elecelf.Sturnus.Operators
         BinaryOperator
     }
 
+    public enum OperatorAssociativity
+    {
+        Left,
+        Right
+    }
+
     /// <summary>
     /// A operator is a operation that will be executed when a expression with it will be calculate.
     /// </summary>
@@ -31,6 +37,14 @@ namespace Elecelf.Sturnus.Operators
         public abstract uint Priority
         {
             get;
+        }
+
+        public virtual OperatorAssociativity Associativity
+        {
+            get
+            {
+                return OperatorAssociativity.Left;
+            }
         }
 
         public int EscalateTime;

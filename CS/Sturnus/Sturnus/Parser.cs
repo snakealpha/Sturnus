@@ -27,6 +27,12 @@ namespace Elecelf.Sturnus
         {
             public Expression Payload;
             public bool IsCaptured = false;
+
+            public WrappedExpression Capture()
+            {
+                IsCaptured = true;
+                return this;
+            }
         }
 
         public const string VariableFirstChars =    "_" +
@@ -307,19 +313,61 @@ namespace Elecelf.Sturnus
 
         public static Expression Assemble(Queue<Expression> operands, Queue<Expression> operators)
         {
-            Queue<WrappedExpression> rawOperands = new Queue<WrappedExpression>
+            Stack<WrappedExpression> rawOperands = new Stack<WrappedExpression>
                 (
-                from operand in operands
-                select new WrappedExpression() { Payload = operand }
+                    (
+                    from operand in operands
+                    select new WrappedExpression() { Payload = operand }
+                    ).Reverse()
                 );
             Queue<WrappedExpression> wrappedOperators = new Queue<WrappedExpression>
                 (
                 from oper in operators
                 select new WrappedExpression() { Payload = oper }
                 );
-            Queue<WrappedExpression> standbyOperands = new Queue<WrappedExpression>();
 
-            throw new NotImplementedException();
+            WrappedExpression currentWrappedExpression;
+            FormulaExpression currentExpression;
+            while(wrappedOperators.Count > 0)
+            {
+                currentWrappedExpression = wrappedOperators.Dequeue();
+                currentExpression = currentWrappedExpression.Payload as FormulaExpression;
+
+                bool captureRight = false;
+                if((    wrappedOperators.Count > 0 &&
+                        currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Left && 
+                        currentExpression.ExpressionOperator.Weight < (wrappedOperators.Peek().Payload as FormulaExpression).ExpressionOperator.Weight
+                    ) || (
+                        wrappedOperators.Count > 0 &&
+                        currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Right && 
+                        currentExpression.ExpressionOperator.Weight <= (wrappedOperators.Peek().Payload as FormulaExpression).ExpressionOperator.Weight
+                    ))
+                {
+                    captureRight = true;
+                }
+
+                if(captureRight)
+                {
+                    currentExpression.RightOperand = wrappedOperators.Peek().Capture().Payload;
+                }
+
+                if(currentExpression.ExpressionOperator.Type == OperatorType.BinaryOperator)
+                {
+                    currentExpression.LeftOperand = rawOperands.Pop().Payload;
+                }
+
+                if(currentExpression.RightOperand == null)
+                {
+                    currentExpression.RightOperand = rawOperands.Pop().Payload;
+                }
+
+                if(!currentWrappedExpression.IsCaptured)
+                {
+                    rawOperands.Push(currentWrappedExpression);
+                }
+            }
+
+            return rawOperands.Pop().Payload;
         }
     }
 }
