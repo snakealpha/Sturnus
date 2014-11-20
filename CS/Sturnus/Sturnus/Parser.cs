@@ -23,12 +23,12 @@ namespace Elecelf.Sturnus
             Operand = 16
         }
 
-        class WrappedExpression
+        class WrappedExpression<T> where T:Expression
         {
-            public Expression Payload;
+            public T Payload;
             public bool IsCaptured = false;
 
-            public WrappedExpression Capture()
+            public WrappedExpression<T> Capture()
             {
                 IsCaptured = true;
                 return this;
@@ -198,6 +198,9 @@ namespace Elecelf.Sturnus
                 }
             }
 
+            if (numRawStr.Length == 0)
+                return null;
+
             ConstantExpression constant = new ConstantExpression(numRawStr.ToString());
             return constant;
         }
@@ -313,42 +316,44 @@ namespace Elecelf.Sturnus
 
         public static Expression Assemble(Queue<Expression> operands, Queue<Expression> operators)
         {
-            Stack<WrappedExpression> rawOperands = new Stack<WrappedExpression>
+            Stack<WrappedExpression<Expression>> rawOperands = new Stack<WrappedExpression<Expression>>
                 (
                     (
                     from operand in operands
-                    select new WrappedExpression() { Payload = operand }
+                    select new WrappedExpression<Expression>() { Payload = operand }
                     ).Reverse()
                 );
-            Queue<WrappedExpression> wrappedOperators = new Queue<WrappedExpression>
+            LinkedList<WrappedExpression<FormulaExpression>> wrappedOperators = new LinkedList<WrappedExpression<FormulaExpression>>
                 (
                 from oper in operators
-                select new WrappedExpression() { Payload = oper }
+                select new WrappedExpression<FormulaExpression>() { Payload = oper as FormulaExpression }
                 );
 
-            WrappedExpression currentWrappedExpression;
-            FormulaExpression currentExpression;
+            LinkedListNode<WrappedExpression<FormulaExpression>> currentNode = wrappedOperators.First;
+            FormulaExpression currentExpression = currentNode.Value.Payload;
+
             while(wrappedOperators.Count > 0)
             {
-                currentWrappedExpression = wrappedOperators.Dequeue();
-                currentExpression = currentWrappedExpression.Payload as FormulaExpression;
-
                 bool captureRight = false;
-                if((    wrappedOperators.Count > 0 &&
+
+                if( currentNode.Next != null &&
+                    (    
+                        wrappedOperators.Count > 0 &&
                         currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Left && 
-                        currentExpression.ExpressionOperator.Weight < (wrappedOperators.Peek().Payload as FormulaExpression).ExpressionOperator.Weight
+                        currentExpression.ExpressionOperator.Weight < (currentNode.Next.Value.Payload as FormulaExpression).ExpressionOperator.Weight
                     ) || (
                         wrappedOperators.Count > 0 &&
-                        currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Right && 
-                        currentExpression.ExpressionOperator.Weight <= (wrappedOperators.Peek().Payload as FormulaExpression).ExpressionOperator.Weight
-                    ))
+                        currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Right &&
+                        currentExpression.ExpressionOperator.Weight <= (currentNode.Next.Value.Payload as FormulaExpression).ExpressionOperator.Weight
+                    )
+                )
                 {
                     captureRight = true;
                 }
 
                 if(captureRight)
                 {
-                    currentExpression.RightOperand = wrappedOperators.Peek().Capture().Payload;
+                    currentExpression.RightOperand = currentNode.Next.Value.Capture().Payload;
                 }
 
                 if(currentExpression.ExpressionOperator.Type == OperatorType.BinaryOperator)
@@ -361,9 +366,28 @@ namespace Elecelf.Sturnus
                     currentExpression.RightOperand = rawOperands.Pop().Payload;
                 }
 
-                if(!currentWrappedExpression.IsCaptured)
+                if (currentNode.Next != null)
                 {
-                    rawOperands.Push(currentWrappedExpression);
+                    currentNode = currentNode.Next;
+                    currentExpression = currentNode.Value.Payload;
+                }
+                else
+                {
+                    rawOperands.Push(new WrappedExpression<Expression>() { Payload = currentNode.Value.Payload });
+                    wrappedOperators.Remove(currentNode);
+                }
+               
+
+                if(currentNode.Previous != null)
+                {
+                    if (currentNode.Previous.Value.IsCaptured)
+                        wrappedOperators.Remove(currentNode.Previous);
+
+                    if (currentNode.Previous.Value.Payload.ExpressionOperator.Weight <= currentNode.Value.Payload.ExpressionOperator.Weight)
+                    {
+                        rawOperands.Push(new WrappedExpression<Expression>() { Payload = currentNode.Previous.Value.Payload });
+                        wrappedOperators.Remove(currentNode.Previous);
+                    }
                 }
             }
 
