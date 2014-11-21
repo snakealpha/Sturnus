@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Elecelf.Sturnus.Operators;
 
 namespace Elecelf.Sturnus
@@ -23,7 +24,7 @@ namespace Elecelf.Sturnus
             get;
         }
 
-        public virtual double Calculate(Context context)
+        public virtual double Calculate(IDictionary<string, double> context)
         {
             throw new NotImplementedException("The base class of Expression should not be used.");
         }
@@ -56,7 +57,7 @@ namespace Elecelf.Sturnus
             }
         }
 
-        public override double Calculate(Context context)
+        public override double Calculate(IDictionary<string, double> context)
         {
             return value;
         }
@@ -116,7 +117,7 @@ namespace Elecelf.Sturnus
             }
         }
 
-        public override double Calculate(Context context)
+        public override double Calculate(IDictionary<string, double> context)
         {
             if (context.ContainsKey(literal))
                 value = context[literal];
@@ -163,7 +164,7 @@ namespace Elecelf.Sturnus
             }
         }
 
-        public override double Calculate(Context context)
+        public override double Calculate(IDictionary<string, double> context)
         {
             value = ExpressionOperator.Type == OperatorType.UniaryOperator ?
                     ExpressionOperator.Execute(0, RightOperand.Calculate(context)) :
