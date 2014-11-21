@@ -70,6 +70,11 @@ namespace Elecelf.Sturnus
         }
 
         public override void Reset() { }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 
     public class VaribleExpression : Expression
@@ -122,6 +127,11 @@ namespace Elecelf.Sturnus
         public override void Reset()
         {
             calculated = false;
+        }
+
+        public override string ToString()
+        {
+            return Literal;
         }
     }
 
@@ -178,6 +188,11 @@ namespace Elecelf.Sturnus
                 RightOperand.Reset();
 
             calculated = false;
+        }
+
+        public override string ToString()
+        {
+            return ExpressionOperator.OperatorLiteral;
         }
     }
 }

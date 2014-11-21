@@ -27,11 +27,17 @@ namespace Elecelf.Sturnus
         {
             public T Payload;
             public bool IsCaptured = false;
+            public bool HasCaptured = false;
 
             public WrappedExpression<T> Capture()
             {
                 IsCaptured = true;
                 return this;
+            }
+
+            public override string ToString()
+            {
+                return Payload.ToString();
             }
         }
 
@@ -214,9 +220,15 @@ namespace Elecelf.Sturnus
             {
                 signs.RemoveFirst();
                 if (peekChar == '{')
+                {
+                    peekChar = signs.First.Value;
                     continue;
+                }
                 else if (peekChar == '}')
+                {
+                    peekChar = signs.First.Value;
                     break;
+                }
 
                 varRawStr.Append(peekChar);
                 peekChar = signs.First.Value;
@@ -332,66 +344,93 @@ namespace Elecelf.Sturnus
             LinkedListNode<WrappedExpression<FormulaExpression>> currentNode = wrappedOperators.First;
             FormulaExpression currentExpression = currentNode.Value.Payload;
 
+            FormulaExpression resultExpression = null;
+
             while(wrappedOperators.Count > 0)
             {
-                bool captureRight = false;
+                // Capture operands of a expression.
+                if (!currentNode.Value.HasCaptured)
+                {
+                    bool captureLeft = false;
+                    bool captureRight = false;
 
-                if( currentNode.Next != null &&
-                    (    
-                        wrappedOperators.Count > 0 &&
-                        currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Left && 
-                        currentExpression.ExpressionOperator.Weight < (currentNode.Next.Value.Payload as FormulaExpression).ExpressionOperator.Weight
-                    ) || (
-                        wrappedOperators.Count > 0 &&
-                        currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Right &&
-                        currentExpression.ExpressionOperator.Weight <= (currentNode.Next.Value.Payload as FormulaExpression).ExpressionOperator.Weight
+                    if (currentNode != wrappedOperators.First &&
+                        (
+                            (
+                            currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Left &&
+                            currentExpression.ExpressionOperator.Weight <= (currentNode.Previous.Value.Payload as FormulaExpression).ExpressionOperator.Weight
+                            ) || (
+                            currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Right &&
+                            currentExpression.ExpressionOperator.Weight < (currentNode.Previous.Value.Payload as FormulaExpression).ExpressionOperator.Weight
+                            )
+                        )
                     )
-                )
-                {
-                    captureRight = true;
-                }
-
-                if(captureRight)
-                {
-                    currentExpression.RightOperand = currentNode.Next.Value.Capture().Payload;
-                }
-
-                if(currentExpression.ExpressionOperator.Type == OperatorType.BinaryOperator)
-                {
-                    currentExpression.LeftOperand = rawOperands.Pop().Payload;
-                }
-
-                if(currentExpression.RightOperand == null)
-                {
-                    currentExpression.RightOperand = rawOperands.Pop().Payload;
-                }
-
-                if (currentNode.Next != null)
-                {
-                    currentNode = currentNode.Next;
-                    currentExpression = currentNode.Value.Payload;
-                }
-                else
-                {
-                    rawOperands.Push(new WrappedExpression<Expression>() { Payload = currentNode.Value.Payload });
-                    wrappedOperators.Remove(currentNode);
-                }
-               
-
-                if(currentNode.Previous != null)
-                {
-                    if (currentNode.Previous.Value.IsCaptured)
-                        wrappedOperators.Remove(currentNode.Previous);
-
-                    if (currentNode.Previous.Value.Payload.ExpressionOperator.Weight <= currentNode.Value.Payload.ExpressionOperator.Weight)
                     {
-                        rawOperands.Push(new WrappedExpression<Expression>() { Payload = currentNode.Previous.Value.Payload });
+                        captureLeft = true;
+                    }
+
+                    if (currentNode != wrappedOperators.Last &&
+                        (
+                            (
+                            currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Left &&
+                            currentExpression.ExpressionOperator.Weight < (currentNode.Next.Value.Payload as FormulaExpression).ExpressionOperator.Weight
+                            ) || (
+                            currentExpression.ExpressionOperator.Associativity == OperatorAssociativity.Right &&
+                            currentExpression.ExpressionOperator.Weight <= (currentNode.Next.Value.Payload as FormulaExpression).ExpressionOperator.Weight
+                            )
+                        )
+                    )
+                    {
+                        captureRight = true;
+                    }
+
+                    if (captureLeft)
+                    {
+                        currentExpression.LeftOperand = currentNode.Previous.Value.Capture().Payload;
                         wrappedOperators.Remove(currentNode.Previous);
                     }
+
+                    if (captureRight)
+                    {
+                        currentExpression.RightOperand = currentNode.Next.Value.Capture().Payload;
+                    }
+
+                    if (currentExpression.LeftOperand == null && currentExpression.ExpressionOperator.Type == OperatorType.BinaryOperator)
+                    {
+                        currentExpression.LeftOperand = rawOperands.Pop().Payload;
+                    }
+
+                    if (currentExpression.RightOperand == null)
+                    {
+                        currentExpression.RightOperand = rawOperands.Pop().Payload;
+                    }
+
+                    currentNode.Value.HasCaptured = true;
                 }
+
+                // Decide next node.
+                if(wrappedOperators.First == currentNode && wrappedOperators.Last == currentNode)
+                {
+                    resultExpression = currentNode.Value.Payload;
+                    wrappedOperators.Remove(currentNode);
+                }
+                else if(wrappedOperators.Last != currentNode)
+                {
+                    currentNode = currentNode.Next;
+                    if (currentNode.Previous.Value.IsCaptured && currentNode.Previous.Value.HasCaptured)
+                        wrappedOperators.Remove(currentNode.Previous);
+                }
+                else if(wrappedOperators.First != currentNode)
+                {
+                    currentNode = currentNode.Previous;
+                    if (currentNode.Next.Value.IsCaptured && currentNode.Next.Value.HasCaptured)
+                        wrappedOperators.Remove(currentNode.Next);
+                }
+
+                currentExpression = currentNode.Value.Payload;
             }
 
-            return rawOperands.Pop().Payload;
+            return resultExpression;
         }
     }
 }
