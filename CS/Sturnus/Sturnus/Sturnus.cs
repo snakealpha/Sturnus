@@ -1,11 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Elecelf.Sturnus
 {
-    class Sturnus
+    public abstract class Sturnus
     {
+        public static Expression Parse(string expression, OperatorContext operatorContext = null)
+        {
+            return Parser.Parse(expression, operatorContext);
+        }
+
+        public static double Calculate(string expression, OperatorContext operatorContext = null, IDictionary<string, double> context = null)
+        {
+            return Parse(expression, operatorContext).Calculate(context);
+        }
+
+        public static double Calculate( string expression, 
+                                        OperatorContext operatorContext = null, 
+                                        IDictionary<string, Expression> expressionContext = null, 
+                                        IDictionary<string, double> globalContext = null)
+        {
+            IDictionary<string, double> context = (globalContext != null) ? globalContext : new Dictionary<string, double>();
+            foreach(var expKey in expressionContext)
+            {
+                context[expKey.Key] = expKey.Value.Calculate(context);
+            }
+
+            return Calculate(expression, operatorContext, context);
+        }
     }
 }
