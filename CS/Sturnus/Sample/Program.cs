@@ -27,6 +27,9 @@ namespace Sample
 
             Expression bracket = Parser.Parse(" -(1 * ( 2 + 3 )) ");
             double bracketRes = bracket.Calculate(null);
+
+            Expression test = Sturnus.Parse("1+-2*3/4-2^2");
+            double testRes = test.Calculate(null);
         }
     }
 }

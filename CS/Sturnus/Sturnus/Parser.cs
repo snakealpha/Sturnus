@@ -29,6 +29,9 @@ namespace Elecelf.Sturnus
             public bool IsCaptured = false;
             public bool HasCaptured = false;
 
+            public bool CaptureLeft = false;
+            public bool CaptureRight = false;
+
             public WrappedExpression<T> Capture()
             {
                 IsCaptured = true;
@@ -431,6 +434,50 @@ namespace Elecelf.Sturnus
             }
 
             return resultExpression;
+        }
+
+        protected static FormulaExpression Capture(List<WrappedExpression<FormulaExpression>> wrappedOperators)
+        {
+            FormulaExpression resultExpression;
+            LinkedList<WrappedExpression<FormulaExpression>> operators = new LinkedList<WrappedExpression<FormulaExpression>>(wrappedOperators);
+            List<WrappedExpression<FormulaExpression>> captureList = new List<WrappedExpression<FormulaExpression>>();
+
+            LinkedListNode<WrappedExpression<FormulaExpression>> current = operators.First;
+            for (int i = 0; i != operators.Count; i++)
+            {
+
+                if(current.Previous != null)
+                {
+                    if( current.Value.Payload.ExpressionOperator.Associativity == OperatorAssociativity.Left &&
+                        current.Value.Payload.ExpressionOperator.Weight <= current.Previous.Value.Payload.ExpressionOperator.Weight)
+                    {
+                        current.Value.CaptureLeft = true;
+                    }
+                    else if (current.Value.Payload.ExpressionOperator.Associativity == OperatorAssociativity.Right &&
+                            current.Value.Payload.ExpressionOperator.Weight < current.Previous.Value.Payload.ExpressionOperator.Weight)
+                    {
+                        current.Value.CaptureLeft = true;
+                    }
+                }
+
+                if(current.Next != null)
+                {
+                    if (current.Value.Payload.ExpressionOperator.Associativity == OperatorAssociativity.Left &&
+                        current.Value.Payload.ExpressionOperator.Weight < current.Next.Value.Payload.ExpressionOperator.Weight)
+                    {
+                        current.Value.CaptureRight = true;
+                    }
+                    else if (current.Value.Payload.ExpressionOperator.Associativity == OperatorAssociativity.Right &&
+                            current.Value.Payload.ExpressionOperator.Weight <= current.Next.Value.Payload.ExpressionOperator.Weight)
+                    {
+                        current.Value.CaptureRight = true;
+                    }
+                }
+
+                
+            }
+
+            throw new System.NotImplementedException();
         }
     }
 }
