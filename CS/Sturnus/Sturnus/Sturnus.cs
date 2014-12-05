@@ -16,9 +16,9 @@ namespace Elecelf.Sturnus
         }
 
         public static double Calculate( string expression, 
-                                        OperatorContext operatorContext = null, 
-                                        IDictionary<string, Expression> expressionContext = null, 
-                                        IDictionary<string, double> globalContext = null)
+                                        OperatorContext operatorContext, 
+                                        IDictionary<string, Expression> expressionContext, 
+                                        IDictionary<string, double> globalContext)
         {
             IDictionary<string, double> context = (globalContext != null) ? globalContext : new Dictionary<string, double>();
             foreach(var expKey in expressionContext)
