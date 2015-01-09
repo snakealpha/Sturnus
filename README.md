@@ -25,7 +25,7 @@ Or, cache a parsed expression if you need to calculate a expression more than on
     argus["argu"] = 2;
     double result = expression.Calculate(argus);
 
-    // result = -4.5, again
+    // result = -4.5, three
 ```
 
 ## Built-in Operators ##
