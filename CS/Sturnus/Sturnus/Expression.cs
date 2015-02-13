@@ -37,6 +37,9 @@ namespace Elecelf.Sturnus
         public abstract void Reset();
     }
 
+    /// <summary>
+    /// ConstantExpression is a expression that describe a constant.
+    /// </summary>
     public class ConstantExpression : Expression
     {
         public ConstantExpression(string literal)
@@ -78,6 +81,9 @@ namespace Elecelf.Sturnus
         }
     }
 
+    /// <summary>
+    /// VaribleExpression is a expression that describe a varible, which can be changed by passing arguments when a expression is excuted.
+    /// </summary>
     public class VaribleExpression : Expression
     {
         private bool calculated = false;
@@ -136,6 +142,10 @@ namespace Elecelf.Sturnus
         }
     }
 
+    /// <summary>
+    /// FormulaExpression is a expression that contains operators and operands.
+    /// In most cases, FormulaExpression is the main body of a whole expression.
+    /// </summary>
     public class FormulaExpression : Expression
     {
         public FormulaExpression(string literal)
@@ -195,5 +205,13 @@ namespace Elecelf.Sturnus
         {
             return ExpressionOperator.OperatorLiteral;
         }
+    }
+
+    /// <summary>
+    /// FunctionExpression is a expression that contains a function object and its arguments.
+    /// </summary>
+    public class FunctionExpression : Expression
+    {
+
     }
 }

@@ -7,6 +7,7 @@ namespace Elecelf.Sturnus
     {
         private Dictionary<string, Type> uniaryOperators = new Dictionary<string, Type>();
         private Dictionary<string, Type> binaryOperators = new Dictionary<string, Type>();
+        private Dictionary<string, Type> buildinFunctions = new Dictionary<string, Type>();
 
         public Dictionary<string, Type> UniaryOperators
         {
@@ -24,7 +25,15 @@ namespace Elecelf.Sturnus
             }
         }
 
-        public OperatorContext(List<Type> binaryOperators, List<Type> uniaryOperators)
+        public Dictionary<string, Type> BuildinFunctions
+        {
+            get
+            {
+                return buildinFunctions;
+            }
+        }
+
+        public OperatorContext(List<Type> binaryOperators, List<Type> uniaryOperators, List<Type> buildinFunctions)
         {
             foreach (var type in binaryOperators)
             {

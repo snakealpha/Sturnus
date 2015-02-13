@@ -70,7 +70,10 @@ namespace Elecelf.Sturnus
                     {
                         typeof(NegativeOperator),
                         typeof(AbsoluteOperator)
-                    });
+                    },
+                    
+                    new List<Type>()
+                    );
 
         /// <summary>
         /// Parse a string into a expression tree.
@@ -92,7 +95,7 @@ namespace Elecelf.Sturnus
             OperatorContext opContext = context == null ? DefaultOperatorContext : context;
 
              // Do parse.
-            Expression mainExpression = parseExpression(expressionChars, 0, opContext);
+            Expression mainExpression = ParseExpression(expressionChars, 0, opContext);
             if(expressionChars.Count > 0)
             {
                 throw new FormatException("Cannot parse the string.");
@@ -101,8 +104,8 @@ namespace Elecelf.Sturnus
             return mainExpression;
         }
 
-        #region Parses
-        public static Expression parseExpression(LinkedList<char> expressionChars, int baseBracketDepth, OperatorContext opContext)
+        #region Parsers
+        public static Expression ParseExpression(LinkedList<char> expressionChars, int baseBracketDepth, OperatorContext opContext)
         {
             // raw expressions that has not been captured by other expressions.
             Queue<Expression> operatandsQueue = new Queue<Expression>();
@@ -139,7 +142,7 @@ namespace Elecelf.Sturnus
 
                 if ((expect & ExpectType.UniaryOperator) != 0)
                 {
-                    currentExpression = parseUniaryOperator(expressionChars, bracketDepth, opContext);
+                    currentExpression = ParseUniaryOperator(expressionChars, bracketDepth, opContext);
                     if (currentExpression != null)
                     {
                         expect = ExpectType.UniaryOperator | ExpectType.LeftBracket | ExpectType.Operand;
@@ -150,7 +153,7 @@ namespace Elecelf.Sturnus
 
                 if ((expect & ExpectType.BinaryOperator) != 0)
                 {
-                    currentExpression = parseBinaryOperator(expressionChars, bracketDepth, opContext);
+                    currentExpression = ParseBinaryOperator(expressionChars, bracketDepth, opContext);
                     if (currentExpression != null)
                     {
                         expect = ExpectType.LeftBracket | ExpectType.Operand | ExpectType.UniaryOperator;
@@ -161,7 +164,7 @@ namespace Elecelf.Sturnus
 
                 if ((expect & ExpectType.Operand) != 0)
                 {
-                    currentExpression = parseConstant(expressionChars);
+                    currentExpression = ParseConstant(expressionChars);
                     if (currentExpression != null)
                     {
                         expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
@@ -169,7 +172,7 @@ namespace Elecelf.Sturnus
                         continue;
                     }
 
-                    currentExpression = parseVarible(expressionChars);
+                    currentExpression = ParseVarible(expressionChars);
                     if (currentExpression != null)
                     {
                         expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
@@ -184,7 +187,7 @@ namespace Elecelf.Sturnus
             return Assemble(operatandsQueue, subexpressionQueue);
         }
 
-        public static Expression parseConstant(LinkedList<char> signs)
+        public static Expression ParseConstant(LinkedList<char> signs)
         {
             bool dotAppeared = false;
             char peekChar;
@@ -224,7 +227,7 @@ namespace Elecelf.Sturnus
             return constant;
         }
 
-        public static Expression parseVarible(LinkedList<char> signs)
+        public static Expression ParseVarible(LinkedList<char> signs)
         {
             char peekChar = signs.First.Value;
             StringBuilder varRawStr = new StringBuilder();
@@ -251,7 +254,7 @@ namespace Elecelf.Sturnus
             return varible;
         }
 
-        public static Expression parseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
+        public static Expression ParseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
         {
             Operators.Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.UniaryOperators.Keys;
@@ -295,7 +298,7 @@ namespace Elecelf.Sturnus
                 return null;
         }
 
-        public static Expression parseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
+        public static Expression ParseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
         {
             Operators.Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.BinaryOperators.Keys;
