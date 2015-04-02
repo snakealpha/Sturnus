@@ -179,6 +179,7 @@ namespace Elecelf.Sturnus
             value = ExpressionOperator.Type == OperatorType.UniaryOperator ?
                     ExpressionOperator.Execute(0, RightOperand.Calculate(context)) :
                     ExpressionOperator.Execute(LeftOperand.Calculate(context), RightOperand.Calculate(context));
+            calculated = true;
 
             return value;
         }
@@ -207,11 +208,63 @@ namespace Elecelf.Sturnus
         }
     }
 
+    public delegate double FunctionDelegate(List<double> expressions);
+
     /// <summary>
     /// FunctionExpression is a expression that contains a function object and its arguments.
+    /// Much different from other expression, a function expression can have more than two arguments. 
     /// </summary>
     public class FunctionExpression : Expression
     {
+        public FunctionExpression(string literal)
+            : base(literal)
+        {
 
+        }
+
+        public FunctionDelegate Callback;
+
+        public List<Expression> Operands = new List<Expression>();
+
+        private bool calculated = false;
+
+        public override double Value
+        {
+            get
+            {
+                return value;
+            }
+            set
+            {
+                throw new InvalidOperationException("Cannot set a value for a FunctionExpression. Just calculate it.");
+            }
+        }
+
+        public override void Reset()
+        {
+            calculated = false;
+            value = 0;
+        }
+
+        public override double Calculate(IDictionary<string, double> context)
+        {
+            List<double> calculatedOperands = new List<double>();
+            foreach(Expression expression in Operands)
+            {
+                calculatedOperands.Add(expression.Calculate(context));
+            }
+
+            calculated = true;
+            value = Callback(calculatedOperands);
+            return value;
+        }
+
+        public override bool Calculated
+        {
+            get 
+            { 
+                return calculated; 
+            }
+        }
     }
 }
