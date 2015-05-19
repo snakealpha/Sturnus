@@ -5,9 +5,9 @@ namespace Elecelf.Sturnus
 {
     public class OperatorContext
     {
-        private Dictionary<string, Type> uniaryOperators = new Dictionary<string, Type>();
-        private Dictionary<string, Type> binaryOperators = new Dictionary<string, Type>();
-        private Dictionary<string, Type> buildinFunctions = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> uniaryOperators = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> binaryOperators = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> buildinFunctions = new Dictionary<string, Type>();
 
         public Dictionary<string, Type> UniaryOperators
         {
@@ -38,13 +38,13 @@ namespace Elecelf.Sturnus
             foreach (var type in binaryOperators)
             {
                 Operators.Operator instance = Activator.CreateInstance(type) as Operators.Operator;
-                BinaryOperators[instance.OperatorLiteral] = type;
+                if (instance != null) BinaryOperators[instance.OperatorLiteral] = type;
             }
 
             foreach (var type in uniaryOperators)
             {
                 Operators.Operator instance = Activator.CreateInstance(type) as Operators.Operator;
-                UniaryOperators[instance.OperatorLiteral] = type;
+                if (instance != null) UniaryOperators[instance.OperatorLiteral] = type;
             }
         }
     }
