@@ -12,12 +12,6 @@ namespace Elecelf.Sturnus
     /// </summary>
     public abstract class Expression
     {
-        public Expression(string literal)
-        {
-
-        }
-
-        protected double value;
         public abstract double Value
         {
             set;
@@ -39,8 +33,9 @@ namespace Elecelf.Sturnus
 
     public class ConstantExpression : Expression
     {
+        private readonly double value;
+
         public ConstantExpression(string literal)
-            : base(literal)
         {
             value = double.Parse(literal);
         }
@@ -53,7 +48,7 @@ namespace Elecelf.Sturnus
             }
             set
             {
-                throw new System.InvalidOperationException("Cannot change the value of a constant expression.");
+                throw new InvalidOperationException("Cannot change the value of a constant expression.");
             }
         }
 
@@ -80,7 +75,7 @@ namespace Elecelf.Sturnus
 
     public class VaribleExpression : Expression
     {
-        private bool calculated = false;
+        private bool calculated;
         public override bool Calculated
         {
             get
@@ -89,7 +84,7 @@ namespace Elecelf.Sturnus
             }
         }
 
-        private string literal;
+        private readonly string literal;
         public string Literal
         {
             get
@@ -99,11 +94,11 @@ namespace Elecelf.Sturnus
         }
 
         public VaribleExpression(string literal)
-            : base(literal)
         {
             this.literal = literal;
         }
 
+        private double value;
         public override double Value
         {
             get
@@ -138,13 +133,7 @@ namespace Elecelf.Sturnus
 
     public class FormulaExpression : Expression
     {
-        public FormulaExpression(string literal)
-            : base(literal)
-        {
-            
-        }
-
-        private bool calculated = false;
+        private bool calculated;
 
         public Operator ExpressionOperator;
 
@@ -152,6 +141,7 @@ namespace Elecelf.Sturnus
 
         public Expression RightOperand;
 
+        private double value;
         public override double Value
         {
             get
