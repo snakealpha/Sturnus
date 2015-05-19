@@ -20,7 +20,7 @@ namespace Elecelf.Sturnus
                                         IDictionary<string, Expression> expressionContext, 
                                         IDictionary<string, double> globalContext)
         {
-            IDictionary<string, double> context = (globalContext != null) ? globalContext : new Dictionary<string, double>();
+            IDictionary<string, double> context = globalContext ?? new Dictionary<string, double>();
             foreach(var expKey in expressionContext)
             {
                 context[expKey.Key] = expKey.Value.Calculate(context);

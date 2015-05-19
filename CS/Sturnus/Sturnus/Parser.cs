@@ -15,6 +15,7 @@ namespace Elecelf.Sturnus
         [Flags]
         enum ExpectType
         {
+            // ReSharper disable once UnusedMember.Local
             None = 0,
             LeftBracket = 1,
             RightBracket = 2,
@@ -27,8 +28,8 @@ namespace Elecelf.Sturnus
         {
             public T Payload;
 
-            public bool CaptureLeft = false;
-            public bool CaptureRight = false;
+            public bool CaptureLeft;
+            public bool CaptureRight;
 
             public WrappedExpression<T> Capture()
             {
@@ -52,8 +53,8 @@ namespace Elecelf.Sturnus
 
         public const string NumberChars = "0123456789";
 
-        public const string escalateUpgradation = "(";
-        public const string escalateDowngradation = ")";
+        public const string EscalateUpgradation = "(";
+        public const string EscalateDowngradation = ")";
 
         public static OperatorContext DefaultOperatorContext = new OperatorContext(
                     new List<Type>()
@@ -94,12 +95,11 @@ namespace Elecelf.Sturnus
                 expressionChars.AddLast(sign);
             }
 
-            OperatorContext opContext = context == null ? DefaultOperatorContext : context;
+            OperatorContext opContext = context ?? DefaultOperatorContext;
 
              // Do parse.
             int bracketDepth = 0;
             ExpectType expect = ExpectType.LeftBracket | ExpectType.UniaryOperator | ExpectType.Operand;
-            Expression currentExpression;
             do
             {
                 if((expect & ExpectType.LeftBracket) != 0)
@@ -124,9 +124,10 @@ namespace Elecelf.Sturnus
                     }
                 }
 
+                Expression currentExpression;
                 if((expect & ExpectType.UniaryOperator) != 0)
                 {
-                    currentExpression = parseUniaryOperator(expressionChars, bracketDepth, opContext);
+                    currentExpression = ParseUniaryOperator(expressionChars, bracketDepth, opContext);
                     if(currentExpression != null)
                     {
                         expect = ExpectType.UniaryOperator | ExpectType.LeftBracket | ExpectType.Operand;
@@ -137,7 +138,7 @@ namespace Elecelf.Sturnus
 
                 if((expect & ExpectType.BinaryOperator) != 0)
                 {
-                    currentExpression = parseBinaryOperator(expressionChars, bracketDepth, opContext);
+                    currentExpression = ParseBinaryOperator(expressionChars, bracketDepth, opContext);
                     if(currentExpression != null)
                     {
                         expect = ExpectType.LeftBracket | ExpectType.Operand | ExpectType.UniaryOperator;
@@ -148,7 +149,7 @@ namespace Elecelf.Sturnus
 
                 if((expect & ExpectType.Operand) != 0)
                 {
-                    currentExpression = parseConstant(expressionChars);
+                    currentExpression = ParseConstant(expressionChars);
                     if(currentExpression != null)
                     {
                         expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
@@ -156,7 +157,7 @@ namespace Elecelf.Sturnus
                         continue;
                     }
 
-                    currentExpression = parseVarible(expressionChars);
+                    currentExpression = ParseVarible(expressionChars);
                     if(currentExpression != null)
                     {
                         expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
@@ -172,10 +173,9 @@ namespace Elecelf.Sturnus
         }
 
         #region Parses
-        public static Expression parseConstant(LinkedList<char> signs)
+        public static Expression ParseConstant(LinkedList<char> signs)
         {
             bool dotAppeared = false;
-            char peekChar;
             StringBuilder numRawStr = new StringBuilder();
 
             while (true)
@@ -183,7 +183,7 @@ namespace Elecelf.Sturnus
                 if (signs.Count == 0)
                     break;
 
-                peekChar = signs.First.Value;
+                var peekChar = signs.First.Value;
 
                 if (NumberChars.IndexOf(peekChar) != -1)
                 {
@@ -212,7 +212,7 @@ namespace Elecelf.Sturnus
             return constant;
         }
 
-        public static Expression parseVarible(LinkedList<char> signs)
+        public static Expression ParseVarible(LinkedList<char> signs)
         {
             char peekChar = signs.First.Value;
             StringBuilder varRawStr = new StringBuilder();
@@ -225,9 +225,8 @@ namespace Elecelf.Sturnus
                     peekChar = signs.First.Value;
                     continue;
                 }
-                else if (peekChar == '}')
+                if (peekChar == '}')
                 {
-                    peekChar = signs.First.Value;
                     break;
                 }
 
@@ -239,9 +238,9 @@ namespace Elecelf.Sturnus
             return varible;
         }
 
-        public static Expression parseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
+        public static Expression ParseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
         {
-            Operators.Operator lastOperator = null;
+            Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.UniaryOperators.Keys;
             StringBuilder operatorRawStr = new StringBuilder();
 
@@ -265,8 +264,8 @@ namespace Elecelf.Sturnus
                 {
                     if (context.UniaryOperators.ContainsKey(currentStr))
                     {
-                        lastOperator = Activator.CreateInstance(context.UniaryOperators[currentStr]) as Operators.Operator;
-                        lastOperator.EscalateTime = escalateTime;
+                        lastOperator = Activator.CreateInstance(context.UniaryOperators[currentStr]) as Operator;
+                        if (lastOperator != null) lastOperator.EscalateTime = escalateTime;
                     }
 
                     signs.RemoveFirst();
@@ -275,17 +274,16 @@ namespace Elecelf.Sturnus
             while (true);
 
             if (lastOperator != null)
-                return new FormulaExpression(null)
+                return new FormulaExpression()
                 {
                     ExpressionOperator = lastOperator
                 };
-            else
-                return null;
+            return null;
         }
 
-        public static Expression parseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
+        private static Expression ParseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
         {
-            Operators.Operator lastOperator = null;
+            Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.BinaryOperators.Keys;
             StringBuilder operatorRawStr = new StringBuilder();
 
@@ -305,21 +303,18 @@ namespace Elecelf.Sturnus
                 {
                     break;
                 }
-                else
+                if (context.BinaryOperators.ContainsKey(currentStr))
                 {
-                    if (context.BinaryOperators.ContainsKey(currentStr))
-                    {
-                        lastOperator = Activator.CreateInstance(context.BinaryOperators[currentStr]) as Operators.Operator;
-                        lastOperator.EscalateTime = escalateTime;
-                    }
-
-                    signs.RemoveFirst();
+                    lastOperator = Activator.CreateInstance(context.BinaryOperators[currentStr]) as Operator;
+                    if (lastOperator != null) lastOperator.EscalateTime = escalateTime;
                 }
+
+                signs.RemoveFirst();
             }
             while (true);
 
             if (lastOperator != null)
-                return new FormulaExpression(null)
+                return new FormulaExpression()
                 {
                     ExpressionOperator = lastOperator
                 };
@@ -358,7 +353,7 @@ namespace Elecelf.Sturnus
             LinkedListNode<WrappedExpression<FormulaExpression>> current = operators.First;
             for (int i = 0; i != operators.Count; i++)
             {
-                if(current.Previous != null)
+                if(current != null && current.Previous != null)
                 {
                     if( current.Value.Payload.ExpressionOperator.Associativity == OperatorAssociativity.Left &&
                         current.Value.Payload.ExpressionOperator.Weight <= current.Previous.Value.Payload.ExpressionOperator.Weight)
@@ -372,7 +367,7 @@ namespace Elecelf.Sturnus
                     }
                 }
 
-                if(current.Next != null)
+                if(current != null && current.Next != null)
                 {
                     if (current.Value.Payload.ExpressionOperator.Associativity == OperatorAssociativity.Left &&
                         current.Value.Payload.ExpressionOperator.Weight < current.Next.Value.Payload.ExpressionOperator.Weight)
@@ -388,14 +383,14 @@ namespace Elecelf.Sturnus
 
                 for(int j = 0; j <= captureList.Count ; j++)
                 {
-                    if(j == captureList.Count || current.Value.Payload.ExpressionOperator.Weight > captureList[j].Value.Payload.ExpressionOperator.Weight)
+                    if(current != null && (j == captureList.Count || current.Value.Payload.ExpressionOperator.Weight > captureList[j].Value.Payload.ExpressionOperator.Weight))
                     {
                         captureList.Insert(j, current);
                         break;
                     }
                 }
 
-                current = current.Next;
+                if (current != null) current = current.Next;
             }
 
             for (int i = 0; i != captureList.Count; i++ )
@@ -403,13 +398,19 @@ namespace Elecelf.Sturnus
                 LinkedListNode<WrappedExpression<FormulaExpression>> currentNode = captureList[i];
                 if (currentNode.Value.CaptureLeft)
                 {
-                    currentNode.Value.Payload.LeftOperand = currentNode.Previous.Value.Capture().Payload;
-                    operators.Remove(currentNode.Previous);
+                    if (currentNode.Previous != null)
+                    {
+                        currentNode.Value.Payload.LeftOperand = currentNode.Previous.Value.Capture().Payload;
+                        operators.Remove(currentNode.Previous);
+                    }
                 }
                 if (currentNode.Value.CaptureRight)
                 {
-                    currentNode.Value.Payload.RightOperand = currentNode.Next.Value.Capture().Payload;
-                    operators.Remove(currentNode.Next);
+                    if (currentNode.Next != null)
+                    {
+                        currentNode.Value.Payload.RightOperand = currentNode.Next.Value.Capture().Payload;
+                        operators.Remove(currentNode.Next);
+                    }
                 }
             }
 

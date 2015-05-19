@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Elecelf.Sturnus.Operators
+﻿namespace Elecelf.Sturnus.Operators
 {
     /// <summary>
     /// The type of a operator.
@@ -21,7 +19,6 @@ namespace Elecelf.Sturnus.Operators
     /// <summary>
     /// A operator is a operation that will be executed when a expression with it will be calculate.
     /// </summary>
-    /// <typeparam name="T">The type of the delegate will be called.</typeparam>
     public abstract class Operator
     {
         public abstract string OperatorLiteral
