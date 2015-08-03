@@ -56,33 +56,13 @@ namespace Elecelf.Sturnus
         public const string EscalateUpgradation = "(";
         public const string EscalateDowngradation = ")";
 
-        public static OperatorContext DefaultOperatorContext = new OperatorContext(
-                    new List<Type>()
-                    {
-                        typeof(AddOperator),
-                        typeof(MinusOperator),
-                        typeof(MultiplyOperator),
-                        typeof(DivideOperator),
-                        typeof(ModOperator),
-                        typeof(PowerOperator)
-                    },
-
-                    new List<Type>() 
-                    {
-                        typeof(NegativeOperator),
-                        typeof(AbsoluteOperator)
-                    },
-                    
-                    new List<Type>()
-                    );
-
         /// <summary>
         /// Parse a string into a expression tree.
         /// </summary>
         /// <param name="expression">Raw string of the expression tree.</param>
         /// <param name="context"> Context of operators.</param>
         /// <returns></returns>
-        public static Expression Parse(string expression, OperatorContext context = null)
+        public static Expression Parse(string expression, Context context = null)
         {
             // chars of expression raw chars.
             LinkedList<char> expressionChars = new LinkedList<char>();
@@ -93,7 +73,7 @@ namespace Elecelf.Sturnus
                 expressionChars.AddLast(sign);
             }
 
-            OperatorContext opContext = context ?? DefaultOperatorContext;
+            Context opContext = context ?? Context.GetDefaultContext();
 
              // Do parse.
             Expression mainExpression = ParseExpression(expressionChars, 0, opContext);
@@ -106,7 +86,7 @@ namespace Elecelf.Sturnus
         }
 
         #region Parsers
-        public static Expression ParseExpression(LinkedList<char> expressionChars, int baseBracketDepth, OperatorContext opContext)
+        public static Expression ParseExpression(LinkedList<char> expressionChars, int baseBracketDepth, Context opContext)
         {
             // raw expressions that has not been captured by other expressions.
             Queue<Expression> operatandsQueue = new Queue<Expression>();
@@ -253,7 +233,7 @@ namespace Elecelf.Sturnus
             return varible;
         }
 
-        public static Expression ParseUniaryOperator(LinkedList<char> signs, int escalateTime, OperatorContext context)
+        public static Expression ParseUniaryOperator(LinkedList<char> signs, int escalateTime, Context context)
         {
             Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.UniaryOperators.Keys;
@@ -296,7 +276,7 @@ namespace Elecelf.Sturnus
             return null;
         }
 
-        public static Expression ParseBinaryOperator(LinkedList<char>signs, int escalateTime, OperatorContext context)
+        public static Expression ParseBinaryOperator(LinkedList<char>signs, int escalateTime, Context context)
         {
             Operator lastOperator = null;
             IEnumerable<string> operatorNames = context.BinaryOperators.Keys;

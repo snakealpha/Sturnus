@@ -4,18 +4,18 @@ namespace Elecelf.Sturnus
 {
     public abstract class Sturnus
     {
-        public static Expression Parse(string expression, OperatorContext operatorContext = null)
+        public static Expression Parse(string expression, Context operatorContext = null)
         {
             return Parser.Parse(expression, operatorContext);
         }
 
-        public static double Calculate(string expression, OperatorContext operatorContext = null, IDictionary<string, double> context = null)
+        public static double Calculate(string expression, Context operatorContext = null, IDictionary<string, double> context = null)
         {
             return Parse(expression, operatorContext).Calculate(context);
         }
 
         public static double Calculate( string expression, 
-                                        OperatorContext operatorContext, 
+                                        Context operatorContext, 
                                         IDictionary<string, Expression> expressionContext, 
                                         IDictionary<string, double> globalContext)
         {

@@ -23,5 +23,10 @@ namespace Elecelf.Sturnus
         /// <param name="arguments"></param>
         /// <returns></returns>
         public abstract double Excute(List<Expression> arguments);
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }
