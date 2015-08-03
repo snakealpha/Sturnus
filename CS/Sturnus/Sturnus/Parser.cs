@@ -15,8 +15,6 @@ namespace Elecelf.Sturnus
         [Flags]
         enum ExpectType
         {
-            // ReSharper disable once UnusedMember.Local
-            None = 0,
             LeftBracket = 1,
             RightBracket = 2,
             UniaryOperator = 4,
@@ -86,6 +84,14 @@ namespace Elecelf.Sturnus
         }
 
         #region Parsers
+        /// <summary>
+        /// Parse a string into a expression.
+        /// Return when all chars are cost or a unexcepted char appears.
+        /// </summary>
+        /// <param name="expressionChars">Linklist of chars in the string.</param>
+        /// <param name="baseBracketDepth">Base bracket depth of the expression.</param>
+        /// <param name="opContext">Context of the expression.</param>
+        /// <returns>Parsed expression.</returns>
         public static Expression ParseExpression(LinkedList<char> expressionChars, int baseBracketDepth, Context opContext)
         {
             // raw expressions that has not been captured by other expressions.
@@ -145,15 +151,8 @@ namespace Elecelf.Sturnus
 
                 if ((expect & ExpectType.Operand) != 0)
                 {
-                    currentExpression = ParseConstant(expressionChars);
-                    if(currentExpression != null)
-                    {
-                        expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
-                        operatandsQueue.Enqueue(currentExpression);
-                        continue;
-                    }
-
-                    currentExpression = ParseVarible(expressionChars);
+                    currentExpression = ParseConstant(expressionChars) ??
+                                        ParseVarible(expressionChars) ?? ParseFunction(expressionChars, opContext);
                     if(currentExpression != null)
                     {
                         expect = ExpectType.BinaryOperator | ExpectType.RightBracket;
@@ -168,6 +167,12 @@ namespace Elecelf.Sturnus
             return Assemble(operatandsQueue, subexpressionQueue);
         }
 
+        /// <summary>
+        /// Parse a constant from a string.
+        /// Return when all costs are cost or a unexcepted char appears.
+        /// </summary>
+        /// <param name="signs">Chars of constant.</param>
+        /// <returns>Parsed constant expression.</returns>
         public static Expression ParseConstant(LinkedList<char> signs)
         {
             bool dotAppeared = false;
@@ -207,9 +212,18 @@ namespace Elecelf.Sturnus
             return constant;
         }
 
+        /// <summary>
+        /// Parse a varible from a string.
+        /// Return when all chars are cost or a unexcepted char appears.
+        /// </summary>
+        /// <param name="signs">Chars from the string to parse.</param>
+        /// <returns>Parsed varible expression.</returns>
         public static Expression ParseVarible(LinkedList<char> signs)
         {
             char peekChar = signs.First.Value;
+            if (peekChar != '{')
+                return null;
+
             StringBuilder varRawStr = new StringBuilder();
 
             while(true)
@@ -233,6 +247,14 @@ namespace Elecelf.Sturnus
             return varible;
         }
 
+        /// <summary>
+        /// Parse a uniary operator from a string.
+        /// Return when all chars are cost or a unexcepted char appears.
+        /// </summary>
+        /// <param name="signs">Chars from the string to parse.</param>
+        /// <param name="escalateTime">Bracket depth of the operator.</param>
+        /// <param name="context">Context of the operator.</param>
+        /// <returns>Parsed uniary operator expression.</returns>
         public static Expression ParseUniaryOperator(LinkedList<char> signs, int escalateTime, Context context)
         {
             Operator lastOperator = null;
@@ -276,6 +298,15 @@ namespace Elecelf.Sturnus
             return null;
         }
 
+        /// <summary>
+        /// Parse a binary operator from a string.
+        /// Return when all chars are cost or a unexcepted char appears.
+        /// </summary>
+        /// <param name="signs">Chars from the string to parse.</param>
+        /// <param name="escalateTime">Bracket depth of the operator.</param>
+        /// <param name="context">Context of the operator.</param>
+        /// <returns>Parsed binary operator expression.</returns>
+
         public static Expression ParseBinaryOperator(LinkedList<char>signs, int escalateTime, Context context)
         {
             Operator lastOperator = null;
@@ -316,8 +347,73 @@ namespace Elecelf.Sturnus
             else
                 return null;
         }
+
+        private enum FunctionParserPhase
+        {
+            Name,
+            Operand
+        }
+
+        /// <summary>
+        /// Parse a function usage from a string.
+        /// Return when all chars are cost or a unexcepted char appears.
+        /// </summary>
+        /// <param name="signs">Chars from the string to parse.</param>
+        /// <param name="context">Context of the operator.</param>
+        /// <returns>Parsed function expression.</returns>
+        public static Expression ParseFunction(LinkedList<char> signs, Context context)
+        {
+            StringBuilder functionName = new StringBuilder();
+            FunctionParserPhase currentParserPhase = FunctionParserPhase.Name;
+
+            char peekChar = signs.First.Value;
+
+            FunctionExpression expression = new FunctionExpression();
+
+            while (true)
+            {
+                if (currentParserPhase == FunctionParserPhase.Name)
+                {
+                    if (peekChar != '[')
+                    {
+                        functionName.Append(peekChar);
+                        signs.RemoveFirst();
+                        peekChar = signs.First.Value;
+                    }
+                    else
+                    {
+                        currentParserPhase = FunctionParserPhase.Operand;
+                    }
+                }
+                else if (currentParserPhase == FunctionParserPhase.Operand)
+                {
+                    if (peekChar == ']')
+                    {
+                        signs.RemoveFirst();
+                        break;
+                    }
+                    else
+                    {
+                        signs.RemoveFirst();
+                        expression.Operands.Add(ParseExpression(signs, 0, context));
+                        peekChar = signs.First.Value;
+
+                    }
+                }
+            }
+
+            expression.Function = Activator.CreateInstance(context.BuildinFunctions[functionName.ToString()]) as Function;
+
+            return expression;
+        }
         #endregion
 
+        /// <summary>
+        /// Assemble a expression from gaven operands and operators.
+        /// </summary>
+        /// <param name="operands">Gaven operands.</param>
+        /// <param name="operators">Gaven operators.</param>
+        /// <returns></returns>
         public static Expression Assemble(Queue<Expression> operands, Queue<Expression> operators)
         {
             List<WrappedExpression<FormulaExpression>> wrappedOperators = new List<WrappedExpression<FormulaExpression>>

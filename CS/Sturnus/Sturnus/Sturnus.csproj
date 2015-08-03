@@ -35,10 +35,9 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
-    <Compile Include="Context.cs" />
     <Compile Include="Expression.cs" />
     <Compile Include="Function.cs" />
-    <Compile Include="OperatorContext.cs" />
+    <Compile Include="Context.cs" />
     <Compile Include="Operators\BaseBinaryOperators.cs" />
     <Compile Include="Operators\BaseUniaryOperators.cs" />
     <Compile Include="Parser.cs" />
