@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Elecelf.Sturnus.Builtin;
 using Elecelf.Sturnus.Operators;
 
 namespace Elecelf.Sturnus
@@ -65,16 +66,23 @@ namespace Elecelf.Sturnus
                         typeof(MultiplyOperator),
                         typeof(DivideOperator),
                         typeof(ModOperator),
-                        typeof(PowerOperator)
+                        typeof(PowerOperator),
                     },
 
                     new List<Type>() 
                     {
                         typeof(NegativeOperator),
-                        typeof(AbsoluteOperator)
+                        typeof(AbsoluteOperator),
                     },
 
                     new List<Type>()
+                    {
+                        typeof(AbsFunction),
+                        typeof(SumFunction),
+                        typeof(MaxFunction),
+                        typeof(MinFunction),
+                        typeof(IfFunction),
+                    }
                     );
         }
     }

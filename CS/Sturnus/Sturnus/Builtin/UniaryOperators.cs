@@ -1,6 +1,7 @@
 ﻿using System;
+using Elecelf.Sturnus.Operators;
 
-namespace Elecelf.Sturnus.Operators
+namespace Elecelf.Sturnus.Builtin
 {
     public class NegativeOperator : Operator
     {

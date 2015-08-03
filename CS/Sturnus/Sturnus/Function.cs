@@ -22,7 +22,7 @@ namespace Elecelf.Sturnus
         /// </summary>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        public abstract double Excute(List<Expression> arguments);
+        public abstract double Excute(List<Expression> arguments, IDictionary<string, double> context);
 
         public override string ToString()
         {

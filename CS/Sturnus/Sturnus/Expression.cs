@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Elecelf.Sturnus.Operators;
 
 namespace Elecelf.Sturnus
@@ -234,7 +233,7 @@ namespace Elecelf.Sturnus
         {
 
             calculated = true;
-            value = Function.Excute(Operands);
+            value = Function.Excute(Operands, context);
             return value;
         }
 
