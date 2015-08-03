@@ -199,15 +199,13 @@ namespace Elecelf.Sturnus
         }
     }
 
-    public delegate double FunctionDelegate(List<double> expressions);
-
     /// <summary>
     /// FunctionExpression is a expression that contains a function object and its arguments.
     /// Much different from other expression, a function expression can have more than two arguments. 
     /// </summary>
     public class FunctionExpression : Expression
     {
-        public FunctionDelegate Callback;
+        public Function Function;
 
         public List<Expression> Operands = new List<Expression>();
 
@@ -234,10 +232,9 @@ namespace Elecelf.Sturnus
 
         public override double Calculate(IDictionary<string, double> context)
         {
-            List<double> calculatedOperands = Operands.Select(expression => expression.Calculate(context)).ToList();
 
             calculated = true;
-            value = Callback(calculatedOperands);
+            value = Function.Excute(Operands);
             return value;
         }
 
