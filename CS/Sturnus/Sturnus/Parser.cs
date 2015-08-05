@@ -406,7 +406,7 @@ namespace Elecelf.Sturnus
             {
                 expression.Function = Activator.CreateInstance(context.BuildinFunctions[functionName.ToString()]) as Function;
             }
-            catch (KeyNotFoundException exception)
+            catch (KeyNotFoundException)
             {
                 var newException = new InvalidOperationException(string.Format("Function {0} cannot found. Check your context and make sure that function is defined.", functionName));
                 throw newException;
