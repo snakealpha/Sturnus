@@ -31,7 +31,12 @@ namespace Sample
             //Expression test = Sturnus.Parse("1+-2*3/4-2^2");
             //double testRes = test.Calculate(null);
 
-            Expression functionTest = Sturnus.Parse("select[{argu1}+1, 3+5, 7*{argu2}]");
+            Expression functionTest = Sturnus.Parse("Sum[{argu1}+1, 3+5, 7*{argu2}]");
+            var functionRes = functionTest.Calculate(new Dictionary<string, double>()
+            {
+                {"argu1", 1},
+                {"argu2", 2},
+            });
         }
     }
 }

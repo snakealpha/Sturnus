@@ -38,11 +38,12 @@
     <Compile Include="Expression.cs" />
     <Compile Include="Function.cs" />
     <Compile Include="Context.cs" />
-    <Compile Include="Operators\BaseBinaryOperators.cs" />
-    <Compile Include="Operators\BaseUniaryOperators.cs" />
+    <Compile Include="Builtin\BinaryOperators.cs" />
+    <Compile Include="Builtin\UniaryOperators.cs" />
     <Compile Include="Parser.cs" />
+    <Compile Include="Operator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Operators\Operator.cs" />
+    <Compile Include="Builtin\Functions.cs" />
     <Compile Include="Sturnus.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
