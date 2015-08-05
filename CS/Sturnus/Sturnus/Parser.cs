@@ -422,15 +422,25 @@ namespace Elecelf.Sturnus
                 select new WrappedExpression<FormulaExpression>() { Payload = oper as FormulaExpression }
                 );
 
-            Expression result = Capture(wrappedOperators);
-
-            for (int i = 0; i != wrappedOperators.Count; i++)
+            // For expressions without any operator, there's no need for capturing. Just return the first operand.
+            Expression result;
+            if (wrappedOperators.Count > 0)
             {
-                FormulaExpression expression = wrappedOperators[i].Payload;
-                if (expression.ExpressionOperator.Type != OperatorType.UniaryOperator && expression.LeftOperand == null)
-                    expression.LeftOperand = operands.Dequeue();
-                if (expression.RightOperand == null)
-                    expression.RightOperand = operands.Dequeue();
+                result = Capture(wrappedOperators);
+
+                for (int i = 0; i != wrappedOperators.Count; i++)
+                {
+                    FormulaExpression expression = wrappedOperators[i].Payload;
+                    if (expression.ExpressionOperator.Type != OperatorType.UniaryOperator &&
+                        expression.LeftOperand == null)
+                        expression.LeftOperand = operands.Dequeue();
+                    if (expression.RightOperand == null)
+                        expression.RightOperand = operands.Dequeue();
+                }
+            }
+            else
+            {
+                result = operands.Peek();
             }
 
             return result;
