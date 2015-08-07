@@ -52,6 +52,8 @@
   <ItemGroup>
     <Compile Include="Sturnus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="Builtin.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sturnus\Sturnus.csproj">

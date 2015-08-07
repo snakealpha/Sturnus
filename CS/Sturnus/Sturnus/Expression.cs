@@ -18,6 +18,11 @@ namespace Elecelf.Sturnus
             get;
         }
 
+        public double Calculate()
+        {
+            return Calculate(null);
+        }
+
         public virtual double Calculate(IDictionary<string, double> context)
         {
             throw new NotImplementedException("The base class of Expression should not be used.");

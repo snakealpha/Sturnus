@@ -20,8 +20,9 @@ namespace Elecelf.Sturnus
         /// The logical body of the function.
         /// This method will be called when a FunctionExpression is calculated.
         /// </summary>
-        /// <param name="arguments"></param>
-        /// <returns></returns>
+        /// <param name="arguments">A list of arguments of the function.</param>
+        /// <param name="context">Excute context.</param>
+        /// <returns>Result.</returns>
         public abstract double Excute(List<Expression> arguments, IDictionary<string, double> context);
 
         public override string ToString()

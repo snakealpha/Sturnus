@@ -48,7 +48,7 @@ namespace Elecelf.Sturnus.Builtin
 
         public override double Excute(List<Expression> arguments, IDictionary<string, double> context)
         {
-            return arguments.Select(expression => expression.Calculate(context)).Concat(new[] {double.MaxValue}).Max();
+            return arguments.Select(expression => expression.Calculate(context)).Max();
         }
     }
 
@@ -64,7 +64,7 @@ namespace Elecelf.Sturnus.Builtin
 
         public override double Excute(List<Expression> arguments, IDictionary<string, double> context)
         {
-            return arguments.Select(expression => expression.Calculate(context)).Concat(new[] {double.MaxValue}).Min();
+            return arguments.Select(expression => expression.Calculate(context)).Min();
         }
     }
 
