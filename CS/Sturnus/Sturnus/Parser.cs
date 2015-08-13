@@ -195,9 +195,11 @@ namespace Elecelf.Sturnus
                     dotAppeared = true;
                     numRawStr.Append(peekChar);
                     signs.RemoveFirst();
-                    peekChar = signs.First.Value;
-                    if (NumberChars.IndexOf(peekChar) == -1)
-                        throw new FormatException("Cannot parse a Number.");
+                    if (signs.First == null || NumberChars.IndexOf(signs.First.Value) == -1)
+                    {
+                        numRawStr.Append('0');
+                        break;
+                    }
                 }
                 else
                 {
@@ -315,6 +317,9 @@ namespace Elecelf.Sturnus
 
             do
             {
+                if (signs.First == null)
+                    break;
+
                 operatorRawStr.Append(signs.First.Value);
                 string currentStr = operatorRawStr.ToString();
 
@@ -344,8 +349,8 @@ namespace Elecelf.Sturnus
                 {
                     ExpressionOperator = lastOperator
                 };
-            else
-                return null;
+
+            return null;
         }
 
         private enum FunctionParserPhase

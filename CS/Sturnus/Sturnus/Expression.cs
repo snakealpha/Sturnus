@@ -23,10 +23,7 @@ namespace Elecelf.Sturnus
             return Calculate(null);
         }
 
-        public virtual double Calculate(IDictionary<string, double> context)
-        {
-            throw new NotImplementedException("The base class of Expression should not be used.");
-        }
+        public abstract double Calculate(IDictionary<string, double> context);
 
         public abstract bool Calculated
         {
@@ -127,6 +124,8 @@ namespace Elecelf.Sturnus
         {
             if (context.ContainsKey(literal))
                 value = context[literal];
+
+            calculated = true;
 
             return value;
         }
@@ -248,6 +247,11 @@ namespace Elecelf.Sturnus
             { 
                 return calculated; 
             }
+        }
+
+        public override string ToString()
+        {
+            return Function.Name;
         }
     }
 }
