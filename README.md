@@ -72,7 +72,7 @@ Your should do these things to custom your own operators:
 
 Or functions:
 * Inherits **Function** Class;
-* Overwrite **Execute** method in your function class.
+* Overwrite **Excute** method in your function class.
 
 After doing this, add the **Context** as *operatorContext* argument when you calaulate a expression with **Sturnus.Calculate** method or generate a expression tree with **Sturnus.Parse** method. Also, you can use **Context.GetDefaultContext** static method to get a default context with built-in operators and functions in it.
 
