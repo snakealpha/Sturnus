@@ -29,6 +29,15 @@ namespace SturnusUnitTest
             Assert.IsTrue(excepted);
             excepted = false;
 
+            constant = new ConstantExpression(19.95);
+            Assert.AreEqual(constant.Value, constant.Calculate(null), 19.95);
+
+            constant = 19.95;
+            Assert.AreEqual(constant.Value, constant.Calculate(null), 19.95);
+
+            constant = 19;
+            Assert.AreEqual(constant.Value, constant.Calculate(null), 19);
+
             var varible = new VaribleExpression("{test}");
             Assert.AreEqual(varible.ToString(), varible.Literal, "{test}");
             Assert.IsFalse(varible.Calculated);

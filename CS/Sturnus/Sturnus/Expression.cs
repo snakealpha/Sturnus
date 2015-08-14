@@ -38,11 +38,21 @@ namespace Elecelf.Sturnus
     /// </summary>
     public class ConstantExpression : Expression
     {
-        private readonly double value;
+        private double value;
 
         public ConstantExpression(string literal)
         {
             value = double.Parse(literal);
+        }
+
+        public ConstantExpression(double value)
+        {
+            this.value = value;
+        }
+
+        private ConstantExpression()
+        {
+            
         }
 
         public override double Value
@@ -75,6 +85,12 @@ namespace Elecelf.Sturnus
         public override string ToString()
         {
             return Value.ToString();
+        }
+
+        public static implicit operator ConstantExpression(double rawNum)
+        {
+            var result = new ConstantExpression {value = rawNum};
+            return result;
         }
     }
 
