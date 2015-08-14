@@ -17,7 +17,7 @@ Calculate a expression just like this:
 You can import introduces variables like this:
 ```cs
     Dictionary<string, Expression> argus = new Dictionary<string, Expression>();
-    argus["argu"] = new ConstantExpression("2");
+    argus["argu"] = new ConstantExpression(2);
     double test3Res = Sturnus.Calculate("1+-2*3/4-{argu}^2", context: argus);
 
     // result = -4.5, too
@@ -85,4 +85,5 @@ Here is some features that may include in future versions of Sturnus:
 * ~~**Functions** I'm thinking about a erlang-style synax to support capture more than 2 operands. This should be used to support complex math functions, such as sum, function and more.~~
 *(Has been implemented in version 1.1.0)*
 * **Improve proformance** Improve parser's algorithm, and parallel expressions.
-* **Simplifing creating expression** Simplify creating when your wanna create a expression without parsing a whole expression.
+* ~~**Simplifing creating expression** Simplify creating when your wanna create a expression without parsing a whole expression.~~
+*(Improving new constructor and implicit operator in version 1.1.1)*
